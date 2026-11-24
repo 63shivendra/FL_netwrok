@@ -231,7 +231,7 @@ footer .wrap{display:grid;gap:10px}
       FL Hospital Network
     </a>
     <nav class="nav" aria-label="Sections">
-      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#fixes">Fixes (v2)</a><a href="#simulator">Simulator</a><a href="#interview">Interview prep</a>
+      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#fixes">Fixes (v2)</a><a href="#simulator">Simulator</a>
     </nav>
   </div>
 </header>
@@ -473,17 +473,6 @@ model = grid.best_estimator_</pre>
   </div>
 </section>
 
-<!-- INTERVIEW -->
-<section class="block" id="interview">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Likely questions</div>
-      <h2>Interview prep</h2>
-      <p>Short, defensible answers grounded in this project's code and measured numbers.</p>
-    </div>
-    <div class="qa" id="qa"></div>
-  </div>
-</section>
 </main>
 
 <footer>
@@ -780,20 +769,6 @@ seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return
 if('IntersectionObserver' in window)new IntersectionObserver(es=>{visible=es[0].isIntersecting;lastT=null},{threshold:0.15}).observe(dg);
 document.addEventListener("visibilitychange",()=>{lastT=null});
 loadRound(0,true);requestAnimationFrame(tick);
-
-// ---------- QA ----------
-const QA=[
- ['Why not use FedAvg?',[`FedAvg averages parameters, so every client needs the same architecture. Here Hospital 1 runs an MLP and Hospital 2 an SVM, and there is no shared parameter space to average. Exchanging predictions on a common reference set (federated distillation, close to FedMD) is model-agnostic. It also sends ${int(sp.comm*3)} floats per round regardless of model size.`,`The cost is that it needs that shared reference set. In the simulator you can see FedAvg doing well whenever all clients can share an architecture.`]],
- ['Is ' + pct(last.acc_mlp) + ' accuracy good?',[`On its own, no. ${pct(cc['1']/total)} of patients are class 1, so a constant predictor scores ${pct(majAcc)}. The more honest numbers are macro-F1 ${f3(last.mlp.macro_f1)} and minority-class recall. I'd fix this with class-weighted loss, threshold tuning or resampling, and report balanced accuracy alongside AUC (${last.mlp.auc_ovr!=null?f3(last.mlp.auc_ovr):'n/a'} for the MLP).`]],
- ['Did federation actually help?',[`For the SVM, yes. Alone it collapses to the majority class (macro-F1 ${f3(B.local_svm_h2.macro_f1)}). Federated, it reaches ${f3(last.svm.macro_f1)}, with accuracy ${pct(last.acc_svm)} against ${pct(B.local_svm_h2.acc)}. For the MLP, accuracy is flat against training alone (${pct(last.acc_mlp)} vs ${pct(B.local_mlp_h1.acc)}). Its AUC improved (${f3(R[0].mlp.auc_ovr)} → ${f3(last.mlp.auc_ovr)}), but its minority recall dropped because the consensus is dominated by class 1.`,`Pooling all the data centrally reaches ${pct(B.central_mlp.acc)}, so the federated MLP closes most of the gap to that ceiling without moving any records.`]],
- ['What exactly leaves a hospital?',[`Only a ${int(sp.comm)} × 3 matrix of class probabilities on the reference set, once per round. No weights, gradients, labels or private rows.`,`Predictions can still leak information, for example through membership inference on overconfident outputs. Mitigations: add noise or temperature to the shared probabilities (DP), use secure aggregation so the server sees only the average, and clip confidence.`]],
- ['How would you add differential privacy?',[`Two places. In local training, use DP-SGD (Opacus) on the MLP with per-sample gradient clipping and Gaussian noise, and track ε with an RDP accountant across rounds. On the shared outputs, add calibrated Gaussian noise to each probability vector before upload (as in PATE). The simulator's noise slider shows the accuracy cost of the second approach.`]],
- ['What happens with non-IID hospitals?',[`The splits here are stratified, which makes them IID and is the easy case. Real hospitals differ in demographics and case mix. Set the heterogeneity slider to high in the simulator and hospitals training alone degrade sharply. Collaboration recovers much of the gap, because each hospital learns about classes it barely sees from the others' predictions.`]],
- ['What would you change first?',[`1) Handle class imbalance and report macro-F1 and AUC. 2) Stop the SVM from discarding its local model each round. 3) Fit the scaler with federated statistics. 4) Move to Flower with real client processes, add 3–5 hospitals with non-IID splits, and run a leave-one-hospital-out evaluation. 5) Add DP on the shared probabilities and measure the privacy-utility curve.`]],
- ['Why is the SVM slower than the MLP?',[`Kernel SVM training scales roughly with the square of the sample count. probability=True adds an internal 5-fold refit, and each round's grid search does 9 parameter combinations × 3 folds = 27 fits. In this run the SVM steps took most of the ${Math.round(FL.total_seconds/60)} minutes. Dropping the unused probability flag and caching the best parameters after round 1 would cut that substantially.`]],
- ['Where does the data come from?',[`Synthea-generated FHIR bundles, so it's synthetic, with no real patients. dataprocees.py flattens them into CSV. The wide table is then filtered and age-group-median imputed, which yields ${int(P.rows)} patients with 44 lab and vital features and a 3-class prognosis label.`]]
-];
-el('qa').innerHTML=QA.map(([q,a])=>`<details><summary>${esc(q)}</summary><div class="ans">${a.map(p=>`<p>${esc(p)}</p>`).join('')}</div></details>`).join('');
 
 // ================= SIMULATOR =================
 let S=null,seed=11,running=false;
