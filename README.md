@@ -4,7 +4,7 @@
 > Each hospital trains on its own data, and only model outputs (predicted probabilities) are sent to a central server.
 > This is **privacy-preserving, distributed machine learning** (federated learning).
 
-**Live demo:** https://63shivendra.github.io/FL_netwrok/ (animated protocol, measured results, in-browser simulator)  
+**Live demo:** https://63shivendra.github.io/Privacy-preserving-federated-learning-for-hospitals/ (animated protocol, measured results, in-browser simulator)  
 **Streamlit app:** `streamlit run streamlit_app.py`, or deploy it free on share.streamlit.io
 
 | | |

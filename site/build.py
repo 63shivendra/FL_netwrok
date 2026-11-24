@@ -13,7 +13,7 @@ data['profile'].pop('feature_names', None)
 tpl = open(os.path.join(root, 'site', 'template.html'), encoding='utf-8').read()
 body = tpl.replace('/*__DATA__*/null', json.dumps(data, separators=(',', ':')))
 
-# GitHub Pages: wrap in a full document (claude.ai adds this skeleton itself)
+# GitHub Pages: wrap the page body in a full HTML document
 head_end = body.index('</style>') + len('</style>')
 full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'

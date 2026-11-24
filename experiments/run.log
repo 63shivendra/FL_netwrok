@@ -21,7 +21,7 @@ Round 1
   Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.7433
   Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.7389
   Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.7365
-C:\Users\hex\AppData\Local\Temp\claude\ed21ea789a8468a1\e9535b07-d8ba-4e4c-bca1-51ce1099a138\scratchpad\flenv\Lib\site-packages\sklearn\model_selection\_split.py:811: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=3.
+<venv>\Lib\site-packages\sklearn\model_selection\_split.py:811: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=3.
   warnings.warn(
   Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'scale'}
   acc mlp 0.7921 svm 0.7860 agree 0.9536 macroF1 mlp 0.442 svm 0.293  (80s)
