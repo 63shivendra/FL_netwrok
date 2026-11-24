@@ -1,0 +1,130 @@
+profile done {'0': 4227, '1': 52022, '2': 9931}
+Round 1
+  Hospital 1 (MLP) - Epoch 1/10, Loss: 0.6815
+  Hospital 1 (MLP) - Epoch 2/10, Loss: 0.5426
+  Hospital 1 (MLP) - Epoch 3/10, Loss: 0.5102
+  Hospital 1 (MLP) - Epoch 4/10, Loss: 0.4963
+  Hospital 1 (MLP) - Epoch 5/10, Loss: 0.4836
+  Hospital 1 (MLP) - Epoch 6/10, Loss: 0.4766
+  Hospital 1 (MLP) - Epoch 7/10, Loss: 0.4691
+  Hospital 1 (MLP) - Epoch 8/10, Loss: 0.4623
+  Hospital 1 (MLP) - Epoch 9/10, Loss: 0.4596
+  Hospital 1 (MLP) - Epoch 10/10, Loss: 0.4558
+  Hospital 2 (SVM) - Trained locally
+  Hospital 1 (MLP) - Fine-tune Epoch 1/10, Loss: 0.7605
+  Hospital 1 (MLP) - Fine-tune Epoch 2/10, Loss: 0.7607
+  Hospital 1 (MLP) - Fine-tune Epoch 3/10, Loss: 0.7583
+  Hospital 1 (MLP) - Fine-tune Epoch 4/10, Loss: 0.7568
+  Hospital 1 (MLP) - Fine-tune Epoch 5/10, Loss: 0.7542
+  Hospital 1 (MLP) - Fine-tune Epoch 6/10, Loss: 0.7507
+  Hospital 1 (MLP) - Fine-tune Epoch 7/10, Loss: 0.7464
+  Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.7433
+  Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.7389
+  Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.7365
+C:\Users\hex\AppData\Local\Temp\claude\ed21ea789a8468a1\e9535b07-d8ba-4e4c-bca1-51ce1099a138\scratchpad\flenv\Lib\site-packages\sklearn\model_selection\_split.py:811: UserWarning: The least populated class in y has only 1 members, which is less than n_splits=3.
+  warnings.warn(
+  Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'scale'}
+  acc mlp 0.7921 svm 0.7860 agree 0.9536 macroF1 mlp 0.442 svm 0.293  (80s)
+Round 2
+  Hospital 1 (MLP) - Epoch 1/10, Loss: 0.4500
+  Hospital 1 (MLP) - Epoch 2/10, Loss: 0.4470
+  Hospital 1 (MLP) - Epoch 3/10, Loss: 0.4406
+  Hospital 1 (MLP) - Epoch 4/10, Loss: 0.4424
+  Hospital 1 (MLP) - Epoch 5/10, Loss: 0.4376
+  Hospital 1 (MLP) - Epoch 6/10, Loss: 0.4380
+  Hospital 1 (MLP) - Epoch 7/10, Loss: 0.4369
+  Hospital 1 (MLP) - Epoch 8/10, Loss: 0.4335
+  Hospital 1 (MLP) - Epoch 9/10, Loss: 0.4307
+  Hospital 1 (MLP) - Epoch 10/10, Loss: 0.4300
+  Hospital 2 (SVM) - Trained locally
+  Hospital 1 (MLP) - Fine-tune Epoch 1/10, Loss: 0.8042
+  Hospital 1 (MLP) - Fine-tune Epoch 2/10, Loss: 0.8038
+  Hospital 1 (MLP) - Fine-tune Epoch 3/10, Loss: 0.8038
+  Hospital 1 (MLP) - Fine-tune Epoch 4/10, Loss: 0.7995
+  Hospital 1 (MLP) - Fine-tune Epoch 5/10, Loss: 0.7949
+  Hospital 1 (MLP) - Fine-tune Epoch 6/10, Loss: 0.7891
+  Hospital 1 (MLP) - Fine-tune Epoch 7/10, Loss: 0.7838
+  Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.7786
+  Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.7714
+  Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.7630
+  Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'auto'}
+  acc mlp 0.7958 svm 0.7908 agree 0.9343 macroF1 mlp 0.440 svm 0.379  (123s)
+Round 3
+  Hospital 1 (MLP) - Epoch 1/10, Loss: 0.4290
+  Hospital 1 (MLP) - Epoch 2/10, Loss: 0.4295
+  Hospital 1 (MLP) - Epoch 3/10, Loss: 0.4248
+  Hospital 1 (MLP) - Epoch 4/10, Loss: 0.4217
+  Hospital 1 (MLP) - Epoch 5/10, Loss: 0.4215
+  Hospital 1 (MLP) - Epoch 6/10, Loss: 0.4187
+  Hospital 1 (MLP) - Epoch 7/10, Loss: 0.4186
+  Hospital 1 (MLP) - Epoch 8/10, Loss: 0.4193
+  Hospital 1 (MLP) - Epoch 9/10, Loss: 0.4150
+  Hospital 1 (MLP) - Epoch 10/10, Loss: 0.4156
+  Hospital 2 (SVM) - Trained locally
+  Hospital 1 (MLP) - Fine-tune Epoch 1/10, Loss: 0.8328
+  Hospital 1 (MLP) - Fine-tune Epoch 2/10, Loss: 0.8258
+  Hospital 1 (MLP) - Fine-tune Epoch 3/10, Loss: 0.8236
+  Hospital 1 (MLP) - Fine-tune Epoch 4/10, Loss: 0.8210
+  Hospital 1 (MLP) - Fine-tune Epoch 5/10, Loss: 0.8127
+  Hospital 1 (MLP) - Fine-tune Epoch 6/10, Loss: 0.8082
+  Hospital 1 (MLP) - Fine-tune Epoch 7/10, Loss: 0.7983
+  Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.7901
+  Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.7831
+  Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.7743
+  Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'scale'}
+  acc mlp 0.7961 svm 0.7913 agree 0.9312 macroF1 mlp 0.456 svm 0.389  (168s)
+Round 4
+  Hospital 1 (MLP) - Epoch 1/10, Loss: 0.4135
+  Hospital 1 (MLP) - Epoch 2/10, Loss: 0.4122
+  Hospital 1 (MLP) - Epoch 3/10, Loss: 0.4114
+  Hospital 1 (MLP) - Epoch 4/10, Loss: 0.4103
+  Hospital 1 (MLP) - Epoch 5/10, Loss: 0.4093
+  Hospital 1 (MLP) - Epoch 6/10, Loss: 0.4107
+  Hospital 1 (MLP) - Epoch 7/10, Loss: 0.4099
+  Hospital 1 (MLP) - Epoch 8/10, Loss: 0.4066
+  Hospital 1 (MLP) - Epoch 9/10, Loss: 0.4044
+  Hospital 1 (MLP) - Epoch 10/10, Loss: 0.4045
+  Hospital 2 (SVM) - Trained locally
+  Hospital 1 (MLP) - Fine-tune Epoch 1/10, Loss: 0.8515
+  Hospital 1 (MLP) - Fine-tune Epoch 2/10, Loss: 0.8499
+  Hospital 1 (MLP) - Fine-tune Epoch 3/10, Loss: 0.8469
+  Hospital 1 (MLP) - Fine-tune Epoch 4/10, Loss: 0.8433
+  Hospital 1 (MLP) - Fine-tune Epoch 5/10, Loss: 0.8358
+  Hospital 1 (MLP) - Fine-tune Epoch 6/10, Loss: 0.8287
+  Hospital 1 (MLP) - Fine-tune Epoch 7/10, Loss: 0.8209
+  Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.8121
+  Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.8039
+  Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.7945
+  Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'auto'}
+  acc mlp 0.7960 svm 0.7931 agree 0.9355 macroF1 mlp 0.383 svm 0.386  (211s)
+Round 5
+  Hospital 1 (MLP) - Epoch 1/10, Loss: 0.4048
+  Hospital 1 (MLP) - Epoch 2/10, Loss: 0.4039
+  Hospital 1 (MLP) - Epoch 3/10, Loss: 0.4029
+  Hospital 1 (MLP) - Epoch 4/10, Loss: 0.4017
+  Hospital 1 (MLP) - Epoch 5/10, Loss: 0.4005
+  Hospital 1 (MLP) - Epoch 6/10, Loss: 0.3996
+  Hospital 1 (MLP) - Epoch 7/10, Loss: 0.3995
+  Hospital 1 (MLP) - Epoch 8/10, Loss: 0.3988
+  Hospital 1 (MLP) - Epoch 9/10, Loss: 0.3986
+  Hospital 1 (MLP) - Epoch 10/10, Loss: 0.4000
+  Hospital 2 (SVM) - Trained locally
+  Hospital 1 (MLP) - Fine-tune Epoch 1/10, Loss: 0.8726
+  Hospital 1 (MLP) - Fine-tune Epoch 2/10, Loss: 0.8736
+  Hospital 1 (MLP) - Fine-tune Epoch 3/10, Loss: 0.8701
+  Hospital 1 (MLP) - Fine-tune Epoch 4/10, Loss: 0.8623
+  Hospital 1 (MLP) - Fine-tune Epoch 5/10, Loss: 0.8569
+  Hospital 1 (MLP) - Fine-tune Epoch 6/10, Loss: 0.8481
+  Hospital 1 (MLP) - Fine-tune Epoch 7/10, Loss: 0.8403
+  Hospital 1 (MLP) - Fine-tune Epoch 8/10, Loss: 0.8319
+  Hospital 1 (MLP) - Fine-tune Epoch 9/10, Loss: 0.8209
+  Hospital 1 (MLP) - Fine-tune Epoch 10/10, Loss: 0.8113
+  Hospital 2 (SVM) - Fine-tuned with best params: {'C': 10, 'gamma': 'scale'}
+  acc mlp 0.7957 svm 0.7919 agree 0.9430 macroF1 mlp 0.373 svm 0.388  (256s)
+FL done {'acc_mlp': 0.7957086563110352, 'acc_svm': 0.7918555454820188, 'avg_train_loss': 0.43481897262323327, 'avg_ft_loss': 0.8048705339431763, 'agreement': 0.9429585933685303, 'improve_mlp': 0.0036264657974243164, 'improve_svm': 0.005893019038984648}
+local mlp 0.7967663946811726
+central mlp 0.7995618011483832
+central weighted 0.5884953605236163
+local svm 0.7859625264430341 21.59841775894165
+ALL DONE
+EXIT 0
