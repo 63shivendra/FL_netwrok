@@ -1,0 +1,232 @@
+{
+ "rows": 66180,
+ "cols": 46,
+ "n_features": 44,
+ "class_counts": {
+  "0": 4227,
+  "1": 52022,
+  "2": 9931
+ },
+ "gender_counts": {
+  "0": 33718,
+  "1": 32462
+ },
+ "missing_total": 0,
+ "age_hist": {
+  "edges": [
+   0,
+   10,
+   20,
+   30,
+   40,
+   50,
+   60,
+   70,
+   80,
+   90,
+   100,
+   110
+  ],
+  "counts": [
+   175,
+   5703,
+   7681,
+   8337,
+   8011,
+   9209,
+   10710,
+   8403,
+   4729,
+   2701,
+   382
+  ]
+ },
+ "age_by_class": {
+  "0": 39.859001656020816,
+  "1": 50.03415862519703,
+  "2": 67.89990937468532
+ },
+ "top_features": [
+  {
+   "name": "age",
+   "F": 3549.4988036107798,
+   "class_means_z": {
+    "0": -0.5352359287441112,
+    "1": -0.08906022312631577,
+    "2": 0.694344295466576
+   }
+  },
+  {
+   "name": "Oral temperature",
+   "F": 3322.4338998202693,
+   "class_means_z": {
+    "0": 1.150653884361225,
+    "1": -0.0648767689922063,
+    "2": -0.14991387500572942
+   }
+  },
+  {
+   "name": "Body Weight",
+   "F": 2197.898373040654,
+   "class_means_z": {
+    "0": -0.5846548428487142,
+    "1": -0.04924867446286083,
+    "2": 0.5068321985327179
+   }
+  },
+  {
+   "name": "Body Height",
+   "F": 1740.1505529094222,
+   "class_means_z": {
+    "0": -0.6151195613129327,
+    "1": -0.028202570845118336,
+    "2": 0.4095523639285581
+   }
+  },
+  {
+   "name": "Body Mass Index",
+   "F": 750.912087457537,
+   "class_means_z": {
+    "0": -0.24320804951693062,
+    "1": -0.0442512284235399,
+    "2": 0.3353215013953722
+   }
+  },
+  {
+   "name": "Glucose",
+   "F": 284.46024946666694,
+   "class_means_z": {
+    "0": 0.010854037086636644,
+    "1": 0.04093106464981592,
+    "2": -0.21903089920228316
+   }
+  },
+  {
+   "name": "Hemoglobin A1c/Hemoglobin.total in Blood",
+   "F": 28.536835174270937,
+   "class_means_z": {
+    "0": -0.012342719216546684,
+    "1": 0.014017835041540132,
+    "2": -0.06817673350141594
+   }
+  },
+  {
+   "name": "American house dust mite IgE Ab in Serum",
+   "F": 21.73023494276391,
+   "class_means_z": {
+    "0": 0.09800217652802247,
+    "1": -0.006237735868267149,
+    "2": -0.009037932216791902
+   }
+  },
+  {
+   "name": "Percentage area affected by eczema Head and Neck",
+   "F": 17.54734967729681,
+   "class_means_z": {
+    "0": 0.0871505730104957,
+    "1": -0.004394251920155126,
+    "2": -0.014075893537912384
+   }
+  },
+  {
+   "name": "Percentage area affected by eczema Upper extremitiy - bilateral",
+   "F": 15.687929203320692,
+   "class_means_z": {
+    "0": -0.0832980972010093,
+    "1": 0.005371941873003631,
+    "2": 0.007314660834919306
+   }
+  },
+  {
+   "name": "Percentage area affected by eczema Trunk",
+   "F": 15.229726444792199,
+   "class_means_z": {
+    "0": 0.0807459133654793,
+    "1": -0.0037482667803371695,
+    "2": -0.014733726850169172
+   }
+  },
+  {
+   "name": "Shrimp IgE Ab in Serum",
+   "F": 14.77005081773486,
+   "class_means_z": {
+    "0": 0.08065769649609954,
+    "1": -0.006187824203662533,
+    "2": -0.0019169360956645407
+   }
+  },
+  {
+   "name": "White oak IgE Ab in Serum",
+   "F": 13.817161070433995,
+   "class_means_z": {
+    "0": 0.07798306303240175,
+    "1": -0.004610210501219884,
+    "2": -0.009042597597775703
+   }
+  },
+  {
+   "name": "Common Ragweed IgE Ab in Serum",
+   "F": 12.457219909703934,
+   "class_means_z": {
+    "0": 0.07417610592976748,
+    "1": -0.0046251821890378525,
+    "2": -0.00734378933914258
+   }
+  },
+  {
+   "name": "Cladosporium herbarum IgE Ab in Serum",
+   "F": 10.977263339513788,
+   "class_means_z": {
+    "0": 0.06925518745494126,
+    "1": -0.0037786821139743653,
+    "2": -0.009683523959196017
+   }
+  }
+ ],
+ "feature_names": [
+  "gender",
+  "American house dust mite IgE Ab in Serum",
+  "Body Height",
+  "Body Mass Index",
+  "Body Weight",
+  "Calcium",
+  "Carbon Dioxide",
+  "Cat dander IgE Ab in Serum",
+  "Chloride",
+  "Cladosporium herbarum IgE Ab in Serum",
+  "Codfish IgE Ab in Serum",
+  "Common Ragweed IgE Ab in Serum",
+  "Cow milk IgE Ab in Serum",
+  "Egg white IgE Ab in Serum",
+  "Estimated Glomerular Filtration Rate",
+  "FEV1/\u200bFVC",
+  "Glucose",
+  "Hemoglobin A1c/Hemoglobin.total in Blood",
+  "Hemoglobin.gastrointestinal [Presence] in Stool by Immunologic method",
+  "High Density Lipoprotein Cholesterol",
+  "History of Hospitalizations+\u200bOutpatient visits",
+  "Honey bee IgE Ab in Serum",
+  "Latex IgE Ab in Serum",
+  "Low Density Lipoprotein Cholesterol",
+  "Microalbumin Creatine Ratio",
+  "Oral temperature",
+  "Peanut IgE Ab in Serum",
+  "Percentage area affected by eczema Head and Neck",
+  "Percentage area affected by eczema Lower extremitiy - bilateral",
+  "Percentage area affected by eczema Trunk",
+  "Percentage area affected by eczema Upper extremitiy - bilateral",
+  "Polyp size greatest dimension by CAP cancer protocols",
+  "Potassium",
+  "Shrimp IgE Ab in Serum",
+  "Sodium",
+  "Soybean IgE Ab in Serum",
+  "Total Cholesterol",
+  "Total score [MMSE]",
+  "Triglycerides",
+  "Urea Nitrogen",
+  "Walnut IgE Ab in Serum",
+  "Wheat IgE Ab in Serum",
+  "White oak IgE Ab in Serum",
+  "age"
+ ]
+}
