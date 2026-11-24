@@ -79,7 +79,7 @@ m[3].metric("Macro-F1 · MLP (fixed v2)", f"{V2L['mlp']['macro_f1']:.3f}", f"{V2
 m[4].metric("Balanced accuracy · MLP (v2)", pct(V2L["mlp"]["bal_acc"]), f"{(V2L['mlp']['bal_acc'] - bal(LAST['mlp'])) * 100:+.1f} pts vs original")
 
 st.divider()
-tabs = st.tabs(["How it works", "Data", "Results", "Fixes & improved results", "Try the simulator", "Interview Q&A"])
+tabs = st.tabs(["How it works", "Data", "Results", "Fixes & improved results", "Try the simulator"])
 
 # ════════════════════════ HOW IT WORKS ════════════════════════
 with tabs[0]:
@@ -482,52 +482,6 @@ with tabs[4]:
                              index=[f"Hospital {i + 1}" for i in range(K)]), width="stretch")
     st.caption("Try this: set heterogeneity to *Extreme*. Hospitals training alone fall apart, and federation recovers much of the gap. "
                "Then raise the noise to see the privacy-versus-accuracy trade-off.")
-
-# ════════════════════════ INTERVIEW Q&A ════════════════════════
-with tabs[5]:
-    st.subheader("Likely interview questions")
-    qa = {
-        "What is the main objective of this project?":
-            "Show that hospitals can jointly train disease-prognosis models **without sharing patient records**. "
-            "This is privacy-preserving, distributed machine learning (federated learning). Each hospital keeps its data, "
-            "and only model outputs are exchanged.",
-        "Why share probabilities instead of model weights (FedAvg)?":
-            "The two hospitals use different model types (MLP and SVM), so there are no common weights to average. "
-            f"Predictions on a shared reference set work for any model, and they cost a fixed {SPL['comm'] * 3:,} floats per round. "
-            "The trade-off is that you need that shared reference set.",
-        f"Your original model had {pct(LAST['acc_mlp'])} accuracy. Why is v2 lower?":
-            f"Because {pct(LAST['acc_mlp'])} was mostly from predicting class 1: a constant 'class 1' guess already gets {pct(MAJ)}, "
-            f"and the original MLP caught only {pct(LAST['mlp']['per_class']['0']['recall'])} of class-0 patients. v2 uses class-weighted losses, "
-            f"so it catches {pct(V2L['mlp']['per_class']['0']['recall'])} of class 0 and {pct(V2L['mlp']['per_class']['2']['recall'])} of class 2. "
-            f"Macro-F1 rose from {LAST['mlp']['macro_f1']:.2f} to {V2L['mlp']['macro_f1']:.2f}, and balanced accuracy from {pct(bal(LAST['mlp']))} to {pct(V2L['mlp']['bal_acc'])}. "
-            "Accuracy dropped to {:.1%}. That is the right trade-off for a medical model.".format(V2L['mlp']['acc']),
-        "What bugs did you find and fix?":
-            "Six: (1) class imbalance was ignored; (2) the SVM discarded its own training every round; (3) the SVM's 'probabilities' "
-            "were a softmax over raw scores, now Platt-calibrated; (4) MLP fine-tuning drifted toward the majority-class consensus, now a "
-            "mixed loss; (5) the scaler used pooled data, now federated statistics; (6) the reported metrics were misleading "
-            "(agreement measured before fine-tune, improvement measured against round 1). The settings were chosen on a validation split, never the test set.",
-        "Did federation actually help?":
-            f"Modestly, and I'd say so plainly. With the fixes, the SVM improves over training alone (macro-F1 {V2B['local_svm_h2']['macro_f1']:.3f} → "
-            f"{V2L['svm']['macro_f1']:.3f}, balanced accuracy {pct(V2B['local_svm_h2']['bal_acc'])} → {pct(V2L['svm']['bal_acc'])}). The MLP gains "
-            f"balanced accuracy ({pct(V2B['local_mlp_h1']['bal_acc'])} → {pct(V2L['mlp']['bal_acc'])}) with similar macro-F1. The federated MLP gets within "
-            f"{V2B['central_mlp']['macro_f1'] - V2L['mlp']['macro_f1']:.3f} macro-F1 of a model trained on all the pooled data, without moving any records. "
-            "With stratified (IID) hospitals there is little to gain; the simulator shows federation helps far more when hospitals differ.",
-        "Can shared probabilities still leak private information?":
-            "Yes, for example through membership-inference attacks on overconfident outputs. Mitigations include adding calibrated noise "
-            "(differential privacy, as in PATE), secure aggregation so the server only sees the average, and temperature or confidence clipping.",
-        "How would you add differential privacy?":
-            "Use DP-SGD with Opacus for the MLP's local training (clip per-sample gradients, add Gaussian noise, and track ε over rounds). "
-            "Add calibrated noise to shared probabilities before upload. The simulator's noise slider shows the accuracy cost.",
-        "What if hospitals have very different patients (non-IID)?":
-            "This project's split is stratified, which is the easy case. In the simulator, set heterogeneity to Extreme: "
-            "hospitals training alone degrade badly, and collaboration recovers much of the gap.",
-        "What would you build next?":
-            "The bug fixes are done (v2). Next: 1) Run real clients with Flower, using 3–5 non-IID hospitals. 2) Add differential "
-            "privacy and measure the privacy-utility curve. 3) Add secure aggregation. 4) Leave-one-hospital-out evaluation.",
-    }
-    for q, ans in qa.items():
-        with st.expander(q):
-            st.markdown(ans)
 
 st.divider()
 st.caption("Data is synthetic (Synthea), with no real patients. Code: federated/client.py and federated/server.py. "

@@ -24,7 +24,7 @@ streamlit run streamlit_app.py
 
 ### Repository layout
 - `docs/`: static site served by GitHub Pages (built from `site/template.html` with `python site/build.py`)
-- `streamlit_app.py`: interactive showcase (objective, protocol, data, results, live simulator, Q&A)
+- `streamlit_app.py`: interactive showcase (objective, protocol, data, results, fixes, live simulator)
 - `federated/`: the original federated learning code (also inside `final_fl.zip` with the dataset)
 - `federated_v2/`: fixed version: class weighting, SVM keeps local knowledge, calibrated probabilities, federated scaler, honest metrics. Run `python federated_v2/server.py final_fl/finaldataset.csv`
 - `experiments/run_v2.py`: runs v2 plus fair baselines and writes `app_data/v2_results.json`
