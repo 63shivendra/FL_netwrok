@@ -79,7 +79,7 @@ m[3].metric("Macro-F1 · MLP (fixed v2)", f"{V2L['mlp']['macro_f1']:.3f}", f"{V2
 m[4].metric("Balanced accuracy · MLP (v2)", pct(V2L["mlp"]["bal_acc"]), f"{(V2L['mlp']['bal_acc'] - bal(LAST['mlp'])) * 100:+.1f} pts vs original")
 
 st.divider()
-tabs = st.tabs(["How it works", "Data", "Results", "Fixes & improved results", "Try the simulator", "Review & next steps", "Interview Q&A"])
+tabs = st.tabs(["How it works", "Data", "Results", "Fixes & improved results", "Try the simulator", "Interview Q&A"])
 
 # ════════════════════════ HOW IT WORKS ════════════════════════
 with tabs[0]:
@@ -483,55 +483,8 @@ with tabs[4]:
     st.caption("Try this: set heterogeneity to *Extreme*. Hospitals training alone fall apart, and federation recovers much of the gap. "
                "Then raise the noise to see the privacy-versus-accuracy trade-off.")
 
-# ════════════════════════ REVIEW ════════════════════════
-with tabs[5]:
-    a, b = st.columns(2)
-    with a:
-        st.subheader("✅ What works")
-        st.markdown(f"""
-- **Mixed models collaborate.** An MLP and an SVM learn together by sharing only predictions.
-- **No data leaves a hospital.** Each round sends only a {SPL['comm']:,} × 3 probability matrix.
-- **Clean evaluation.** Stratified splits, fixed seeds, and the scaler is fit on training data only.
-- **Federation helped the weaker model.** SVM macro-F1 went from {B['local_svm_h2']['macro_f1']:.2f} alone to {LAST['svm']['macro_f1']:.2f}.
-""")
-    with b:
-        st.subheader("🔧 Fixed in v2, and still to do")
-        st.markdown("""
-- ✅ **Class imbalance** handled with √-inverse-frequency class weights
-- ✅ **SVM keeps its local knowledge** across rounds
-- ✅ **Consensus no longer drags models to class 1** (mixed loss)
-- ✅ **Federated normalization**: only count, sum and sum of squares are shared
-- ⬜ **Add real privacy**: DP-SGD (Opacus) and secure aggregation
-- ⬜ **Real networking**: Flower clients, 3–5 non-IID hospitals
-""")
-        st.caption("See the **Fixes & improved results** tab for before/after numbers.")
-    with st.expander("Details: the bugs in the original code"):
-        st.markdown(f"""
-- **Imbalance:** {pct(P['class_counts']['1'] / sum(P['class_counts'].values()))} of patients are class 1. The class-weighted pooled model reaches
-  macro-F1 **{B['central_mlp_weighted']['macro_f1']:.2f}**, against {B['central_mlp']['macro_f1']:.2f} unweighted.
-- **SVM reset:** `train_local` refits on local data, then `fine_tune` replaces the model with one trained only on
-  reference-set pseudo-labels, so nothing carries over between rounds.
-- **Consensus skew:** in round 1, the averaged probabilities picked class 1 for {R[0]['avg_prob_class_share'][1]:,} of {SPL['comm']:,} rows.
-  MLP class-0 recall fell from {pct(R[0]['mlp']['per_class']['0']['recall'])} to {pct(LAST['mlp']['per_class']['0']['recall'])}.
-- **Scaler:** it is fit on both hospitals' rows together. Sites can send their count, sum and sum of squares instead.
-- **Unused `probability=True`:** it triggers an extra 5-fold calibration in the SVM that the code never uses.
-- **Reference set:** both hospitals hold the same {SPL['comm']:,} feature rows. That's fine if the set is public or synthetic, but it should be stated.
-""")
-    st.subheader("Planned vs. built")
-    st.dataframe(pd.DataFrame([
-        ["Stratified split across hospitals", "✅ Done", "2 hospitals"],
-        ["Held-out global test set", "✅ Done", "20% of data"],
-        ["Aggregation", "✅ Done (variant)", "Probability averaging instead of FedAvg, for mixed models"],
-        ["Metrics: accuracy, F1, ROC-AUC, confusion matrix", "✅ Done", "Added in this re-run"],
-        ["Dashboard / report", "✅ Done", "This app"],
-        ["Flower / gRPC networking", "⬜ Next", "Currently a single-process simulation"],
-        ["Differential privacy", "⬜ Next", "Simulated with noise in the Simulator tab"],
-        ["Secure aggregation", "⬜ Next", ""],
-        ["Docker deployment", "⬜ Next", ""],
-    ], columns=["Item", "Status", "Notes"]), hide_index=True, width="stretch")
-
 # ════════════════════════ INTERVIEW Q&A ════════════════════════
-with tabs[6]:
+with tabs[5]:
     st.subheader("Likely interview questions")
     qa = {
         "What is the main objective of this project?":
