@@ -8,7 +8,7 @@ Outputs
 import json, os, shutil
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 j = lambda n: json.load(open(os.path.join(root, 'app_data', n), encoding='utf-8'))
-data = {'profile': j('profile.json'), 'fl': j('fl_results.json'), 'base': j('baselines.json'), 'runDate': 'Nov 2026'}
+data = {'profile': j('profile.json'), 'fl': j('fl_results.json'), 'base': j('baselines.json'), 'v2': j('v2_results.json'), 'runDate': 'Nov 2026'}
 data['profile'].pop('feature_names', None)
 tpl = open(os.path.join(root, 'site', 'template.html'), encoding='utf-8').read()
 body = tpl.replace('/*__DATA__*/null', json.dumps(data, separators=(',', ':')))
