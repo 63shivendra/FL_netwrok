@@ -1,0 +1,5 @@
+_extracted/
+showcase/
+__pycache__/
+*.pyc
+.venv/

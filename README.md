@@ -1,3 +1,36 @@
+# Privacy-Preserving Federated Learning for Hospitals
+
+> **Main objective:** let hospitals train disease-prognosis models **together without sharing patient records**.
+> Each hospital trains on its own data, and only model outputs (predicted probabilities) are sent to a central server.
+> This is **privacy-preserving, distributed machine learning** (federated learning).
+
+**Live demo (Streamlit):** _add your share.streamlit.io link here after deploying_
+
+| | |
+|---|---|
+| Hospitals | 2. Hospital 1 trains a PyTorch MLP, Hospital 2 an RBF-kernel SVM |
+| What is shared | Only a 13,236 × 3 probability matrix per round. No raw data, no weights |
+| Aggregation | Server averages the probabilities, and each hospital fine-tunes on the consensus (federated distillation) |
+| Data | 66,180 synthetic patients (Synthea FHIR), 44 lab/vital features, 3 prognosis classes |
+| Result (re-run) | MLP 79.6% / SVM 79.2% test accuracy. Federation lifted SVM macro-F1 from 0.30 to 0.39 |
+
+### Run the app locally
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+### Repository layout
+- `streamlit_app.py`: interactive showcase (objective, protocol, data, results, live simulator, Q&A)
+- `federated/client.py`, `federated/server.py`: the federated learning code (also inside `final_fl.zip` with the dataset)
+- `experiments/run_experiment.py`: re-runs the FL code with extra metrics and baselines, writing to `app_data/`
+- `app_data/`: measured results used by the app, plus a 4,000-row anonymized sample for the simulator
+- `dataprocees.py`, `datahandlingmissingvalues.py`, `datashuffle.py`: data preparation from FHIR to CSV
+
+---
+
+## Original project notes
+
 Federated Learning for Healthcare: Hospital Model Collaboration
 Project Overview
 This project implements a federated learning system simulating two hospitals collaborating to improve their machine learning models without sharing raw patient data. The system uses a client-server architecture where:
