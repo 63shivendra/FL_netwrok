@@ -13,7 +13,8 @@
 | What is shared | Only a 13,236 × 3 probability matrix per round. No raw data, no weights |
 | Aggregation | Server averages the probabilities, and each hospital fine-tunes on the consensus (federated distillation) |
 | Data | 66,180 synthetic patients (Synthea FHIR), 44 lab/vital features, 3 prognosis classes |
-| Result (re-run) | MLP 79.6% / SVM 79.2% test accuracy. Federation lifted SVM macro-F1 from 0.30 to 0.39 |
+| Original result | MLP 79.6% / SVM 79.2% accuracy, but macro-F1 only 0.37 / 0.39 (mostly predicting the majority class) |
+| **Fixed (v2) result** | **MLP macro-F1 0.606, balanced accuracy 71.3%**, class-0 recall 1% → 54%, class-2 recall 13% → 91%. Within 0.01 macro-F1 of training on all pooled data |
 
 ### Run the app locally
 ```bash
@@ -24,7 +25,9 @@ streamlit run streamlit_app.py
 ### Repository layout
 - `docs/`: static site served by GitHub Pages (built from `site/template.html` with `python site/build.py`)
 - `streamlit_app.py`: interactive showcase (objective, protocol, data, results, live simulator, Q&A)
-- `federated/client.py`, `federated/server.py`: the federated learning code (also inside `final_fl.zip` with the dataset)
+- `federated/`: the original federated learning code (also inside `final_fl.zip` with the dataset)
+- `federated_v2/`: fixed version: class weighting, SVM keeps local knowledge, calibrated probabilities, federated scaler, honest metrics. Run `python federated_v2/server.py final_fl/finaldataset.csv`
+- `experiments/run_v2.py`: runs v2 plus fair baselines and writes `app_data/v2_results.json`
 - `experiments/run_experiment.py`: re-runs the FL code with extra metrics and baselines, writing to `app_data/`
 - `app_data/`: measured results used by the app, plus a 4,000-row anonymized sample for the simulator
 - `dataprocees.py`, `datahandlingmissingvalues.py`, `datashuffle.py`: data preparation from FHIR to CSV

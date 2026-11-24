@@ -23,10 +23,13 @@ CLASS_COLORS = ["#6250d6", "#eda100", "#1baf7a"]
 @st.cache_data
 def load():
     j = lambda n: json.loads((DATA / n).read_text())
-    return j("profile.json"), j("fl_results.json"), j("baselines.json")
+    return j("profile.json"), j("fl_results.json"), j("baselines.json"), j("v2_results.json")
 
 
-P, FL, B = load()
+P, FL, B, V2 = load()
+V2L = V2["rounds"][-1]
+V2B = V2["baselines"]
+bal = lambda mm: mm.get("bal_acc", float(np.mean([mm["per_class"][c]["recall"] for c in "012"])))
 R = FL["rounds"]
 LAST = R[-1]
 SPL = FL["splits"]
@@ -72,11 +75,11 @@ m = st.columns(5)
 m[0].metric("Patients (synthetic)", f"{P['rows']:,}")
 m[1].metric("Hospitals", "2", help="Hospital 1: PyTorch MLP · Hospital 2: scikit-learn SVM")
 m[2].metric("Raw records shared", "0")
-m[3].metric("Final accuracy · MLP", pct(LAST["acc_mlp"]), f"{(LAST['acc_mlp'] - R[0]['acc_mlp']) * 100:+.2f} pts vs round 1")
-m[4].metric("Final accuracy · SVM", pct(LAST["acc_svm"]), f"{(LAST['acc_svm'] - R[0]['acc_svm']) * 100:+.2f} pts vs round 1")
+m[3].metric("Macro-F1 · MLP (fixed v2)", f"{V2L['mlp']['macro_f1']:.3f}", f"{V2L['mlp']['macro_f1'] - LAST['mlp']['macro_f1']:+.3f} vs original", help="Macro-F1 weights all three prognosis classes equally")
+m[4].metric("Balanced accuracy · MLP (v2)", pct(V2L["mlp"]["bal_acc"]), f"{(V2L['mlp']['bal_acc'] - bal(LAST['mlp'])) * 100:+.1f} pts vs original")
 
 st.divider()
-tabs = st.tabs(["How it works", "Data", "Results", "Try the simulator", "Review & next steps", "Interview Q&A"])
+tabs = st.tabs(["How it works", "Data", "Results", "Fixes & improved results", "Try the simulator", "Review & next steps", "Interview Q&A"])
 
 # ════════════════════════ HOW IT WORKS ════════════════════════
 with tabs[0]:
@@ -367,7 +370,76 @@ def simulate(K, alpha, rounds, epochs, noise, drop, weighted, seed):
     return pd.DataFrame(hist), comp, float(np.bincount(yt).max() / len(yt))
 
 
+# ════════════════════════ FIXES (v2) ════════════════════════
 with tabs[3]:
+    st.subheader("Bugs fixed: original vs. v2")
+    st.caption("Same data, same 30/30/20/20 split, same 13,236 test patients. The v2 settings were chosen on a validation split "
+               "carved from training data, and the test set was used once. Code: federated_v2/ · experiments/run_v2.py")
+
+    o1, o2, n1, n2 = LAST["mlp"], LAST["svm"], V2L["mlp"], V2L["svm"]
+    k = st.columns(4)
+    k[0].metric("MLP macro-F1", f"{n1['macro_f1']:.3f}", f"{n1['macro_f1'] - o1['macro_f1']:+.3f} vs original")
+    k[1].metric("SVM macro-F1", f"{n2['macro_f1']:.3f}", f"{n2['macro_f1'] - o2['macro_f1']:+.3f} vs original")
+    k[2].metric("MLP balanced accuracy", pct(n1["bal_acc"]), f"{(n1['bal_acc'] - bal(o1)) * 100:+.1f} pts")
+    k[3].metric("MLP accuracy", pct(n1["acc"]), f"{(n1['acc'] - o1['acc']) * 100:+.1f} pts (expected)", delta_color="off")
+
+    st.info(f"**Why plain accuracy went down.** The original models scored about {pct(o1['acc'])} mostly by predicting class 1 "
+            f"(only {pct(o1['per_class']['0']['recall'])} of class-0 patients were caught). v2 now catches "
+            f"**{pct(n1['per_class']['0']['recall'])}** of class 0 and **{pct(n1['per_class']['2']['recall'])}** of class 2, "
+            "at the cost of some false alarms on class 1. For a medical model, finding the rare cases matters more.")
+
+    rounds_v2 = [x["round"] for x in V2["rounds"]]
+    fig = go.Figure()
+    fig.add_scatter(x=rounds, y=[x["mlp"]["macro_f1"] for x in R], name="MLP · original", line=dict(color=BLUE, width=2, dash="dot"))
+    fig.add_scatter(x=rounds, y=[x["svm"]["macro_f1"] for x in R], name="SVM · original", line=dict(color=ORANGE, width=2, dash="dot"))
+    fig.add_scatter(x=rounds_v2, y=[x["mlp"]["macro_f1"] for x in V2["rounds"]], name="MLP · v2", line=dict(color=BLUE, width=2), mode="lines+markers")
+    fig.add_scatter(x=rounds_v2, y=[x["svm"]["macro_f1"] for x in V2["rounds"]], name="SVM · v2", line=dict(color=ORANGE, width=2), mode="lines+markers")
+    fig.update_layout(title="Macro-F1 by round: original (dotted) vs. v2 (solid)")
+    fig.update_xaxes(title="Round", dtick=1)
+    show(style(fig, 340, ".2f"))
+
+    def r2(name, mm):
+        return {"Model": name, "Accuracy": mm["acc"], "Macro-F1": mm["macro_f1"], "Balanced acc": bal(mm),
+                "Recall · class 0": mm["per_class"]["0"]["recall"], "Recall · class 2": mm["per_class"]["2"]["recall"],
+                "ROC-AUC": mm.get("auc_ovr")}
+
+    cmp = pd.DataFrame([
+        r2("Original · federated MLP", o1), r2("Original · federated SVM", o2),
+        r2("⭐ v2 · federated MLP", n1), r2("⭐ v2 · federated SVM", n2),
+        r2("v2 · MLP trained alone", V2B["local_mlp_h1"]), r2("v2 · SVM trained alone", V2B["local_svm_h2"]),
+        r2("v2 · all data pooled (upper bound)", V2B["central_mlp"]),
+    ])
+    st.dataframe(cmp.style.format({c: "{:.3f}" for c in cmp.columns if c != "Model"}, na_rep="–"), hide_index=True, width="stretch")
+
+    st.markdown("**What was fixed**")
+    st.markdown("""
+| # | Bug | Fix in v2 |
+|---|---|---|
+| 1 | Class imbalance ignored, so models mostly predicted class 1 | Loss weighted by √(inverse class frequency), from each hospital's own labels |
+| 2 | SVM threw away its own training every round | Fine-tune retrains on **local labels + consensus pseudo-labels** |
+| 3 | SVM "probabilities" were a softmax over raw scores | Platt-calibrated on 10% of the hospital's own data |
+| 4 | MLP fine-tune drifted toward the majority-class consensus | Mixed loss: 50% soft consensus + 50% local labels, mini-batched |
+| 5 | Scaler was fit on both hospitals' pooled rows | **Federated scaler**: hospitals share only count, sum, sum of squares |
+| 6 | Agreement measured before fine-tune; "improvement" vs round 1 | Agreement measured after fine-tune; compared against hospitals training alone |
+""")
+    with st.expander("Confusion matrices (v2, final round)"):
+        a, b = st.columns(2)
+        for col, key, name in [(a, "mlp", "Hospital 1 · MLP (v2)"), (b, "svm", "Hospital 2 · SVM (v2)")]:
+            cm = np.array(V2L[key]["cm"])
+            share = cm / cm.sum(1, keepdims=True)
+            fig = go.Figure(go.Heatmap(z=share, x=["Pred 0", "Pred 1", "Pred 2"], y=["True 0", "True 1", "True 2"],
+                                       colorscale="Blues", showscale=False,
+                                       text=[[f"{cm[i][j]:,}<br>{share[i][j]:.0%}" for j in range(3)] for i in range(3)],
+                                       texttemplate="%{text}"))
+            fig.update_yaxes(autorange="reversed")
+            fig.update_layout(title=name)
+            col.plotly_chart(style(fig, 300), width="stretch", config={"displayModeBar": False})
+    with st.expander("What I tried that did not help"):
+        st.markdown(f"- **Missing-value indicator columns** for the 25 mostly-imputed features: {V2['choices']['missing_indicators']}.\n"
+                    "- **Full inverse-frequency weights:** higher minority recall, but validation macro-F1 dropped to 0.54 (√ weights gave 0.61).")
+
+
+with tabs[4]:
     st.subheader("Federation simulator")
     st.markdown("This trains real neural networks on a 3,000-patient sample of the project data (1,000 test patients, IDs removed). "
                 "Change the settings and compare **this project's probability averaging** with **FedAvg**, "
@@ -412,7 +484,7 @@ with tabs[3]:
                "Then raise the noise to see the privacy-versus-accuracy trade-off.")
 
 # ════════════════════════ REVIEW ════════════════════════
-with tabs[4]:
+with tabs[5]:
     a, b = st.columns(2)
     with a:
         st.subheader("✅ What works")
@@ -423,15 +495,17 @@ with tabs[4]:
 - **Federation helped the weaker model.** SVM macro-F1 went from {B['local_svm_h2']['macro_f1']:.2f} alone to {LAST['svm']['macro_f1']:.2f}.
 """)
     with b:
-        st.subheader("🔧 What to improve")
+        st.subheader("🔧 Fixed in v2, and still to do")
         st.markdown("""
-- **Handle class imbalance.** Use class weights or focal loss, and report macro-F1 and AUC.
-- **Keep the SVM's local knowledge.** It currently retrains from scratch every round.
-- **Balance the consensus.** Averaged probabilities lean toward class 1.
-- **Federated normalization.** Compute the mean and variance per site instead of pooling them.
-- **Add real privacy.** Use DP-SGD (Opacus) and secure aggregation.
+- ✅ **Class imbalance** handled with √-inverse-frequency class weights
+- ✅ **SVM keeps its local knowledge** across rounds
+- ✅ **Consensus no longer drags models to class 1** (mixed loss)
+- ✅ **Federated normalization**: only count, sum and sum of squares are shared
+- ⬜ **Add real privacy**: DP-SGD (Opacus) and secure aggregation
+- ⬜ **Real networking**: Flower clients, 3–5 non-IID hospitals
 """)
-    with st.expander("Details behind each improvement"):
+        st.caption("See the **Fixes & improved results** tab for before/after numbers.")
+    with st.expander("Details: the bugs in the original code"):
         st.markdown(f"""
 - **Imbalance:** {pct(P['class_counts']['1'] / sum(P['class_counts'].values()))} of patients are class 1. The class-weighted pooled model reaches
   macro-F1 **{B['central_mlp_weighted']['macro_f1']:.2f}**, against {B['central_mlp']['macro_f1']:.2f} unweighted.
@@ -457,7 +531,7 @@ with tabs[4]:
     ], columns=["Item", "Status", "Notes"]), hide_index=True, width="stretch")
 
 # ════════════════════════ INTERVIEW Q&A ════════════════════════
-with tabs[5]:
+with tabs[6]:
     st.subheader("Likely interview questions")
     qa = {
         "What is the main objective of this project?":
@@ -468,12 +542,23 @@ with tabs[5]:
             "The two hospitals use different model types (MLP and SVM), so there are no common weights to average. "
             f"Predictions on a shared reference set work for any model, and they cost a fixed {SPL['comm'] * 3:,} floats per round. "
             "The trade-off is that you need that shared reference set.",
-        f"Is {pct(LAST['acc_mlp'])} accuracy good?":
-            f"On its own, no. A constant 'class 1' prediction gets {pct(MAJ)}. The more honest metrics are macro-F1 "
-            f"({LAST['mlp']['macro_f1']:.2f}) and ROC-AUC ({LAST['mlp']['auc_ovr']:.3f}). The next step is to handle the class imbalance.",
+        f"Your original model had {pct(LAST['acc_mlp'])} accuracy. Why is v2 lower?":
+            f"Because {pct(LAST['acc_mlp'])} was mostly from predicting class 1: a constant 'class 1' guess already gets {pct(MAJ)}, "
+            f"and the original MLP caught only {pct(LAST['mlp']['per_class']['0']['recall'])} of class-0 patients. v2 uses class-weighted losses, "
+            f"so it catches {pct(V2L['mlp']['per_class']['0']['recall'])} of class 0 and {pct(V2L['mlp']['per_class']['2']['recall'])} of class 2. "
+            f"Macro-F1 rose from {LAST['mlp']['macro_f1']:.2f} to {V2L['mlp']['macro_f1']:.2f}, and balanced accuracy from {pct(bal(LAST['mlp']))} to {pct(V2L['mlp']['bal_acc'])}. "
+            "Accuracy dropped to {:.1%}. That is the right trade-off for a medical model.".format(V2L['mlp']['acc']),
+        "What bugs did you find and fix?":
+            "Six: (1) class imbalance was ignored; (2) the SVM discarded its own training every round; (3) the SVM's 'probabilities' "
+            "were a softmax over raw scores, now Platt-calibrated; (4) MLP fine-tuning drifted toward the majority-class consensus, now a "
+            "mixed loss; (5) the scaler used pooled data, now federated statistics; (6) the reported metrics were misleading "
+            "(agreement measured before fine-tune, improvement measured against round 1). The settings were chosen on a validation split, never the test set.",
         "Did federation actually help?":
-            f"For the SVM, yes. Macro-F1 went from {B['local_svm_h2']['macro_f1']:.2f} alone to {LAST['svm']['macro_f1']:.2f}. "
-            f"For the MLP, accuracy stayed flat against training alone, but ROC-AUC rose from {R[0]['mlp']['auc_ovr']:.3f} to {LAST['mlp']['auc_ovr']:.3f}.",
+            f"Modestly, and I'd say so plainly. With the fixes, the SVM improves over training alone (macro-F1 {V2B['local_svm_h2']['macro_f1']:.3f} → "
+            f"{V2L['svm']['macro_f1']:.3f}, balanced accuracy {pct(V2B['local_svm_h2']['bal_acc'])} → {pct(V2L['svm']['bal_acc'])}). The MLP gains "
+            f"balanced accuracy ({pct(V2B['local_mlp_h1']['bal_acc'])} → {pct(V2L['mlp']['bal_acc'])}) with similar macro-F1. The federated MLP gets within "
+            f"{V2B['central_mlp']['macro_f1'] - V2L['mlp']['macro_f1']:.3f} macro-F1 of a model trained on all the pooled data, without moving any records. "
+            "With stratified (IID) hospitals there is little to gain; the simulator shows federation helps far more when hospitals differ.",
         "Can shared probabilities still leak private information?":
             "Yes, for example through membership-inference attacks on overconfident outputs. Mitigations include adding calibrated noise "
             "(differential privacy, as in PATE), secure aggregation so the server only sees the average, and temperature or confidence clipping.",
@@ -484,8 +569,8 @@ with tabs[5]:
             "This project's split is stratified, which is the easy case. In the simulator, set heterogeneity to Extreme: "
             "hospitals training alone degrade badly, and collaboration recovers much of the gap.",
         "What would you build next?":
-            "1) Fix class imbalance. 2) Keep the SVM's local model across rounds. 3) Use federated normalization. "
-            "4) Run real clients with Flower, using 3–5 non-IID hospitals. 5) Add DP and measure the privacy-utility curve.",
+            "The bug fixes are done (v2). Next: 1) Run real clients with Flower, using 3–5 non-IID hospitals. 2) Add differential "
+            "privacy and measure the privacy-utility curve. 3) Add secure aggregation. 4) Leave-one-hospital-out evaluation.",
     }
     for q, ans in qa.items():
         with st.expander(q):
