@@ -4,7 +4,8 @@
 > Each hospital trains on its own data, and only model outputs (predicted probabilities) are sent to a central server.
 > This is **privacy-preserving, distributed machine learning** (federated learning).
 
-**Live demo (Streamlit):** _add your share.streamlit.io link here after deploying_
+**Live demo:** https://63shivendra.github.io/FL_netwrok/ (animated protocol, measured results, in-browser simulator)  
+**Streamlit app:** `streamlit run streamlit_app.py`, or deploy it free on share.streamlit.io
 
 | | |
 |---|---|
@@ -21,6 +22,7 @@ streamlit run streamlit_app.py
 ```
 
 ### Repository layout
+- `docs/`: static site served by GitHub Pages (built from `site/template.html` with `python site/build.py`)
 - `streamlit_app.py`: interactive showcase (objective, protocol, data, results, live simulator, Q&A)
 - `federated/client.py`, `federated/server.py`: the federated learning code (also inside `final_fl.zip` with the dataset)
 - `experiments/run_experiment.py`: re-runs the FL code with extra metrics and baselines, writing to `app_data/`
