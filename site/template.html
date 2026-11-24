@@ -221,7 +221,7 @@ footer .wrap{display:grid;gap:10px}
       FL Hospital Network
     </a>
     <nav class="nav" aria-label="Sections">
-      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#fixes">Fixes (v2)</a><a href="#simulator">Simulator</a><a href="#review">Review</a><a href="#interview">Interview prep</a>
+      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#fixes">Fixes (v2)</a><a href="#simulator">Simulator</a><a href="#interview">Interview prep</a>
     </nav>
   </div>
 </header>
@@ -460,20 +460,6 @@ model = grid.best_estimator_</pre>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- REVIEW -->
-<section class="block" id="review">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Code review of the repository</div>
-      <h2>What works, and what to fix next</h2>
-      <p>These are the points a strong interviewer is likely to probe. Each comes from reading <span class="mono">client.py</span> and <span class="mono">server.py</span> and from the re-run numbers above.</p>
-    </div>
-    <div class="find" id="findings"></div>
-    <h3 style="margin:32px 0 12px">Planned in the project brief vs. built</h3>
-    <div class="check" id="checklist"></div>
   </div>
 </section>
 
@@ -784,24 +770,6 @@ seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return
 if('IntersectionObserver' in window)new IntersectionObserver(es=>{visible=es[0].isIntersecting;lastT=null},{threshold:0.15}).observe(dg);
 document.addEventListener("visibilitychange",()=>{lastT=null});
 loadRound(0,true);requestAnimationFrame(tick);
-
-// ---------- findings ----------
-const mlpGain=last.acc_mlp-majAcc,svmGain=last.acc_svm-majAcc;
-const F=[
-  ['fx','Accuracy sits close to the majority-class baseline',`Class 1 makes up ${pct(cc['1']/total)} of patients. Always predicting it scores ${pct(majAcc)}. The final MLP is ${pp(mlpGain)} and the SVM ${pp(svmGain)} relative to that. Lead with macro-F1 (MLP ${f3(last.mlp.macro_f1)}) and per-class recall: class 0 recall is ${pct(last.mlp.per_class['0'].recall)} for the MLP and ${pct(last.svm.per_class['0'].recall)} for the SVM. The fix is a class-weighted or focal loss, or resampling. The class-weighted centralized run reaches macro-F1 ${f3(B.central_mlp_weighted.macro_f1)}.`],
-  ['fx','Averaging probabilities amplifies the majority class',`In round 1 the averaged consensus put class 1 on top for ${int(R[0].avg_prob_class_share[1])} of ${int(sp.comm)} reference rows. Fine-tuning on that consensus erodes the MLP's minority recall: class 0 recall goes from ${pct(R[0].mlp.per_class['0'].recall)} in round 1 to ${pct(last.mlp.per_class['0'].recall)} in round 5, and macro-F1 from ${f3(R[0].mlp.macro_f1)} to ${f3(last.mlp.macro_f1)}, even as ROC-AUC rises from ${f3(R[0].mlp.auc_ovr)} to ${f3(last.mlp.auc_ovr)}. Fixes: class-balanced soft targets, temperature sharpening, or mixing in the local cross-entropy loss during fine-tuning.`],
-  ['fx','The SVM forgets its private data every round',`In round 1, train_local refits the SVC on Hospital 2's data. Then fine_tune replaces self.model with a new GridSearchCV estimator trained only on reference-set pseudo-labels. The model that gets evaluated has never seen Hospital 2's labels directly, and each round starts from scratch. Keeping the local model and blending it with the consensus (or adding the reference rows to the local training set) would let knowledge carry across rounds.`],
-  ['md','The shared reference set is a strong assumption',`Both hospitals hold the same ${int(sp.comm)} patient feature vectors. That is realistic only if the set is public, synthetic or consented. Say this up front. It is the price of letting different model families collaborate, since FedAvg cannot average an MLP with an SVM.`],
-  ['fx','Normalization uses pooled statistics',`StandardScaler is fit on both hospitals' training rows together, which a real deployment couldn't do. A federated mean and variance (each site sends its count, sum and sum of squares) gives the same scaler without pooling. Test rows are correctly excluded from the fit.`],
-  ['fx','The SVM sets probability=True but never uses it',`compute_logits applies softmax to decision_function values, so the internal 5-fold Platt calibration that probability=True triggers is wasted compute. It's the main reason round 1 takes longest. Either drop the flag or use predict_proba for calibrated probabilities.`],
-  ['md','The README describes the loss differently from the code',`The README says KL divergence. The code minimizes soft-label cross-entropy, −Σ p̄ log q. They differ only by the entropy of p̄, which is constant with respect to the model, so the gradients are identical. That's a good detail to explain if asked.`],
-  ['ok','Federation measurably helped the SVM',`Trained alone on Hospital 2's data, the SVM predicts class 1 for almost everyone (accuracy ${pct(B.local_svm_h2.acc)}, macro-F1 ${f3(B.local_svm_h2.macro_f1)}). After federation it reaches ${pct(last.acc_svm)} and macro-F1 ${f3(last.svm.macro_f1)}, because the MLP's minority-class signal arrives through the shared probabilities. The MLP ends level with its own local-only baseline (${pct(B.local_mlp_h1.acc)}), so the benefit flowed mainly from the stronger model to the weaker one.`],
-  ['ok','What is solid',`Stratified 30/30/20/20 splits with fixed seeds, no test leakage into the scaler, model-agnostic probability exchange (the MLP and SVM really do collaborate), and confidence-weighted pseudo-labels for the SVM. Agreement rose from ${pct(R[0].agreement)} to ${pct(last.agreement)} as the two models converged on the consensus.`],
-  ['md','Repository hygiene',`The working code exists only inside final_fl.zip. The repository root also has empty files (==, error, error2…), Colab boilerplate in datahandlingmissingvalues.py, about 75 MB of CSVs and zips in git, hard-coded Windows paths, and no requirements.txt. Unzip into src/, add requirements.txt, and move data to releases or Git LFS.`]
-];
-el('findings').innerHTML=F.map(([lv,t,p])=>`<div class="fi"><span class="pill ${lv==='fx'?'ok':lv}">${lv==='hi'?'High':lv==='md'?'Medium':lv==='fx'?'Fixed in v2':'Strength'}</span><div><h3>${esc(t)}</h3><p>${esc(p)}</p></div></div>`).join('');
-const CK=[['y','Stratified partition across hospitals','2 hospitals (brief suggested 3–5)'],['y','Global hold-out test set','20%, never trained on'],['p','Aggregation','Probability averaging instead of FedAvg, deliberate for mixed models'],['n','Flower / gRPC transport','Single-process simulation'],['n','Docker / Kubernetes deployment',''],['n','Differential privacy (DP-SGD, Opacus)','Shown only as noise in the simulator'],['n','Secure aggregation',''],['y','Accuracy, F1, ROC-AUC, confusion matrix','Added in this re-run'],['n','Leave-one-client-out evaluation',''],['y','Dashboard and report','This page'],['y','Bug fixes and class balancing','Version 2, see Fixes']];
-el('checklist').innerHTML=CK.map(([s,t,d])=>`<div><span class="mk ${s}">${s==='y'?'✓':s==='n'?'✕':'~'}</span><span>${esc(t)}${d?`<small>${esc(d)}</small>`:''}</span></div>`).join('');
 
 // ---------- QA ----------
 const QA=[
