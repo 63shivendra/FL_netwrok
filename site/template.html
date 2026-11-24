@@ -221,7 +221,7 @@ footer .wrap{display:grid;gap:10px}
       FL Hospital Network
     </a>
     <nav class="nav" aria-label="Sections">
-      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#simulator">Simulator</a><a href="#review">Review</a><a href="#interview">Interview prep</a>
+      <a href="#protocol">Protocol</a><a href="#data">Data</a><a href="#results">Results</a><a href="#fixes">Fixes (v2)</a><a href="#simulator">Simulator</a><a href="#review">Review</a><a href="#interview">Interview prep</a>
     </nav>
   </div>
 </header>
@@ -388,6 +388,34 @@ model = grid.best_estimator_</pre>
   </div>
 </section>
 
+<!-- FIXES -->
+<section class="block" id="fixes">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Version 2</div>
+      <h2>Bugs fixed: original vs. v2</h2>
+      <p>The same data, split and 13,236 test patients. The v2 settings were chosen on a validation split carved from training data, and the test set was used once. The code is in <span class="mono">federated_v2/</span>.</p>
+    </div>
+    <div class="stats" id="fixStats" style="margin-top:0"></div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="fig-head"><div><div class="fig-title">Macro-F1 by round</div><div class="fig-sub">Dotted lines show the original code, solid lines v2</div></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>MLP v2</span><span><i style="background:var(--s2)"></i>SVM v2</span><span><i style="background:none;height:0;border-top:2px dotted var(--s1)"></i>MLP original</span><span><i style="background:none;height:0;border-top:2px dotted var(--s2)"></i>SVM original</span></div></div>
+        <div class="chart" id="fixChart"></div>
+      </div>
+      <div class="panel">
+        <div class="fig-title">What was fixed</div>
+        <div class="tscroll" style="margin-top:8px"><table id="fixList"></table></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <div class="fig-head"><div><div class="fig-title">Before and after, on the same test set</div><div class="fig-sub">The highlighted rows are the v2 federated models. "Alone" means the same v2 model trained on one hospital's data only.</div></div></div>
+      <div class="tscroll"><table id="fixTable"></table></div>
+    </div>
+    <div class="callout" style="margin-top:14px" id="fixNote"></div>
+  </div>
+</section>
+
 <!-- SIMULATOR -->
 <section class="block" id="simulator">
   <div class="wrap">
@@ -474,7 +502,8 @@ const DATA = /*__DATA__*/null;
 </script>
 <script>
 (function(){
-const P=DATA.profile, FL=DATA.fl, B=DATA.base;
+const P=DATA.profile, FL=DATA.fl, B=DATA.base, V2=DATA.v2;
+const balOf=m=>m.bal_acc!=null?m.bal_acc:(m.per_class['0'].recall+m.per_class['1'].recall+m.per_class['2'].recall)/3;
 const R=FL.rounds, last=R[R.length-1];
 const f3=v=>v.toFixed(3), pct=(v,d=1)=>(v*100).toFixed(d)+'%', int=v=>Math.round(v).toLocaleString('en-US');
 const pp=v=>(v>=0?'+':'−')+Math.abs(v*100).toFixed(2)+' pts';
@@ -493,8 +522,8 @@ function tiles(host,items){host.innerHTML=items.map(t=>`<div class="stat"><span 
 tiles(el('heroStats'),[
   {k:'Patients',v:int(P.rows),d:'44 features, 3 prognosis classes'},
   {k:'Raw records shared',v:'0',d:'only 13,236 × 3 probabilities per round'},
-  {k:'Final accuracy · MLP',v:pct(last.acc_mlp),d:`macro-F1 ${f3(last.mlp.macro_f1)}`},
-  {k:'Final accuracy · SVM',v:pct(last.acc_svm),d:`macro-F1 ${f3(last.svm.macro_f1)}`},
+  {k:'Macro-F1 · MLP (v2)',v:f3(V2.rounds[V2.rounds.length-1].mlp.macro_f1),d:`was ${f3(last.mlp.macro_f1)} before the fixes`},
+  {k:'Balanced accuracy · MLP (v2)',v:pct(V2.rounds[V2.rounds.length-1].mlp.bal_acc),d:`was ${pct(balOf(last.mlp))} before the fixes`},
   {k:'Majority baseline',v:pct(majAcc),d:'the bar any model must clear'}
 ]);
 tiles(el('resStats'),[
@@ -526,7 +555,7 @@ function lineChart(host,o){
     (o.bands||[]).forEach(b=>{s+=`<rect x="${x(b.from)}" y="${m.t}" width="${x(b.to)-x(b.from)}" height="${ih}" style="fill:var(--sunk);opacity:.6"/>`});
     const ends=[];
     o.series.forEach(se=>{let d='',pen=false;se.values.forEach((v,i)=>{if(v==null||isNaN(v)){pen=false;return}d+=(pen?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1);pen=true});
-      s+=`<path d="${d}" style="fill:none;stroke:${se.color};stroke-width:2;stroke-linejoin:round;stroke-linecap:round"/>`;
+      s+=`<path d="${d}" style="fill:none;stroke:${se.color};stroke-width:2;stroke-linejoin:round;stroke-linecap:round;${se.dash?'stroke-dasharray:2 5;':''}"/>`;
       let li=-1;se.values.forEach((v,i)=>{if(v!=null&&!isNaN(v))li=i});
       if(li>=0&&se.dot!==false){s+=`<circle cx="${x(li)}" cy="${y(se.values[li])}" r="4" style="fill:${se.color};stroke:var(--surface);stroke-width:2"/>`;ends.push({y:y(se.values[li]),x:x(li),v:se.values[li],name:se.short||se.name})}
     });
@@ -614,6 +643,35 @@ cm(el('cm1'),last.mlp);cm(el('cm2'),last.svm);
   const bar=v=>`<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><span>${f3(v)}</span><div style="width:60px;height:6px;background:var(--sunk);border-radius:3px"><div style="width:${v*60}px;height:6px;background:var(--ink2);border-radius:3px"></div></div></div>`;
   el('baseTable').innerHTML=`<thead><tr><th>Model</th><th class="n">Accuracy</th><th class="n">Macro-F1</th><th class="n">Recall · class 0</th><th class="n">Recall · class 2</th><th class="n">ROC-AUC</th></tr></thead><tbody>`+
   rows.map(([n,m,c])=>`<tr class="${c==='hl'?'hl':''}"><td>${esc(n)}</td><td class="n">${bar(m.acc)}</td><td class="n">${bar(m.macro_f1)}</td><td class="n">${pct(m.per_class['0'].recall)}</td><td class="n">${pct(m.per_class['2'].recall)}</td><td class="n">${m.auc_ovr!=null?f3(m.auc_ovr):'–'}</td></tr>`).join('')+'</tbody>';})();
+
+// ---------- fixes (v2) ----------
+(function(){const n=V2.rounds[V2.rounds.length-1],o=last,VB=V2.baselines;
+  const sg=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(3);
+  tiles(el('fixStats'),[
+    {k:'MLP macro-F1',v:f3(n.mlp.macro_f1),d:`${sg(n.mlp.macro_f1-o.mlp.macro_f1)} vs original`},
+    {k:'SVM macro-F1',v:f3(n.svm.macro_f1),d:`${sg(n.svm.macro_f1-o.svm.macro_f1)} vs original`},
+    {k:'MLP class-0 recall',v:pct(n.mlp.per_class['0'].recall),d:`was ${pct(o.mlp.per_class['0'].recall)}`},
+    {k:'MLP class-2 recall',v:pct(n.mlp.per_class['2'].recall),d:`was ${pct(o.mlp.per_class['2'].recall)}`},
+    {k:'MLP accuracy',v:pct(n.mlp.acc),d:`was ${pct(o.mlp.acc)} (expected drop)`}]);
+  const xs=V2.rounds.map(r=>'R'+r.round);
+  const all=[...R.map(r=>r.mlp.macro_f1),...R.map(r=>r.svm.macro_f1),...V2.rounds.map(r=>r.mlp.macro_f1),...V2.rounds.map(r=>r.svm.macro_f1)];
+  lineChart(el('fixChart'),{xs,y:[Math.floor((Math.min(...all)-0.03)*10)/10,Math.ceil((Math.max(...all)+0.03)*10)/10],yfmt:v=>v.toFixed(2),endLabels:false,
+    tipTitle:i=>'Round '+(i+1),aria:'Macro F1 by round, original versus v2',
+    series:[{name:'MLP v2',color:'var(--s1)',values:V2.rounds.map(r=>r.mlp.macro_f1)},{name:'SVM v2',color:'var(--s2)',values:V2.rounds.map(r=>r.svm.macro_f1)},
+      {name:'MLP original',color:'var(--s1)',values:R.map(r=>r.mlp.macro_f1),dash:1,dot:false},{name:'SVM original',color:'var(--s2)',values:R.map(r=>r.svm.macro_f1),dash:1,dot:false}]});
+  const FX=[['Class imbalance ignored',"Loss weighted by √(inverse class frequency), from each hospital's own labels"],
+    ['SVM discarded its training every round','Fine-tune on local labels plus consensus pseudo-labels'],
+    ['SVM "probabilities" were a softmax over raw scores',"Platt calibration on 10% of the hospital's own data"],
+    ['MLP drifted toward the majority-class consensus','50% soft-consensus loss + 50% local loss, mini-batched'],
+    ['Scaler fit on pooled hospital data','Federated scaler from count, sum and sum of squares'],
+    ['Misleading metrics','Agreement measured after fine-tune; compared against hospitals training alone']];
+  el('fixList').innerHTML='<thead><tr><th>Bug</th><th>Fix in v2</th></tr></thead><tbody>'+FX.map(([a,b])=>`<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')+'</tbody>';
+  const rows=[['Original · federated MLP',o.mlp],['Original · federated SVM',o.svm],['v2 · federated MLP',n.mlp,'hl'],['v2 · federated SVM',n.svm,'hl'],
+    ['v2 · MLP alone',VB.local_mlp_h1],['v2 · SVM alone',VB.local_svm_h2],['v2 · all data pooled (upper bound)',VB.central_mlp]];
+  el('fixTable').innerHTML='<thead><tr><th>Model</th><th class="n">Accuracy</th><th class="n">Macro-F1</th><th class="n">Balanced acc.</th><th class="n">Recall · class 0</th><th class="n">Recall · class 2</th><th class="n">ROC-AUC</th></tr></thead><tbody>'+
+    rows.map(([nm,m,c])=>`<tr class="${c||''}"><td>${esc(nm)}</td><td class="n">${f3(m.acc)}</td><td class="n">${f3(m.macro_f1)}</td><td class="n">${f3(balOf(m))}</td><td class="n">${pct(m.per_class['0'].recall)}</td><td class="n">${pct(m.per_class['2'].recall)}</td><td class="n">${m.auc_ovr!=null?f3(m.auc_ovr):'–'}</td></tr>`).join('')+'</tbody>';
+  el('fixNote').innerHTML=`<b>Why accuracy went down.</b> The original ${pct(o.mlp.acc)} came mostly from predicting class 1, which alone scores ${pct(majAcc)}. v2 finds ${pct(n.mlp.per_class['0'].recall)} of class-0 and ${pct(n.mlp.per_class['2'].recall)} of class-2 patients, at the cost of some false alarms. The federated MLP gets within ${(VB.central_mlp.macro_f1-n.mlp.macro_f1).toFixed(3)} macro-F1 of a model trained on all the pooled data, without moving any records.`;
+})();
 
 // ---------- protocol animation (replays the measured run) ----------
 const dg=el('dg'),NS='http://www.w3.org/2000/svg';
@@ -730,19 +788,19 @@ loadRound(0,true);requestAnimationFrame(tick);
 // ---------- findings ----------
 const mlpGain=last.acc_mlp-majAcc,svmGain=last.acc_svm-majAcc;
 const F=[
-  ['hi','Accuracy sits close to the majority-class baseline',`Class 1 makes up ${pct(cc['1']/total)} of patients. Always predicting it scores ${pct(majAcc)}. The final MLP is ${pp(mlpGain)} and the SVM ${pp(svmGain)} relative to that. Lead with macro-F1 (MLP ${f3(last.mlp.macro_f1)}) and per-class recall: class 0 recall is ${pct(last.mlp.per_class['0'].recall)} for the MLP and ${pct(last.svm.per_class['0'].recall)} for the SVM. The fix is a class-weighted or focal loss, or resampling. The class-weighted centralized run reaches macro-F1 ${f3(B.central_mlp_weighted.macro_f1)}.`],
-  ['hi','Averaging probabilities amplifies the majority class',`In round 1 the averaged consensus put class 1 on top for ${int(R[0].avg_prob_class_share[1])} of ${int(sp.comm)} reference rows. Fine-tuning on that consensus erodes the MLP's minority recall: class 0 recall goes from ${pct(R[0].mlp.per_class['0'].recall)} in round 1 to ${pct(last.mlp.per_class['0'].recall)} in round 5, and macro-F1 from ${f3(R[0].mlp.macro_f1)} to ${f3(last.mlp.macro_f1)}, even as ROC-AUC rises from ${f3(R[0].mlp.auc_ovr)} to ${f3(last.mlp.auc_ovr)}. Fixes: class-balanced soft targets, temperature sharpening, or mixing in the local cross-entropy loss during fine-tuning.`],
-  ['hi','The SVM forgets its private data every round',`In round 1, train_local refits the SVC on Hospital 2's data. Then fine_tune replaces self.model with a new GridSearchCV estimator trained only on reference-set pseudo-labels. The model that gets evaluated has never seen Hospital 2's labels directly, and each round starts from scratch. Keeping the local model and blending it with the consensus (or adding the reference rows to the local training set) would let knowledge carry across rounds.`],
+  ['fx','Accuracy sits close to the majority-class baseline',`Class 1 makes up ${pct(cc['1']/total)} of patients. Always predicting it scores ${pct(majAcc)}. The final MLP is ${pp(mlpGain)} and the SVM ${pp(svmGain)} relative to that. Lead with macro-F1 (MLP ${f3(last.mlp.macro_f1)}) and per-class recall: class 0 recall is ${pct(last.mlp.per_class['0'].recall)} for the MLP and ${pct(last.svm.per_class['0'].recall)} for the SVM. The fix is a class-weighted or focal loss, or resampling. The class-weighted centralized run reaches macro-F1 ${f3(B.central_mlp_weighted.macro_f1)}.`],
+  ['fx','Averaging probabilities amplifies the majority class',`In round 1 the averaged consensus put class 1 on top for ${int(R[0].avg_prob_class_share[1])} of ${int(sp.comm)} reference rows. Fine-tuning on that consensus erodes the MLP's minority recall: class 0 recall goes from ${pct(R[0].mlp.per_class['0'].recall)} in round 1 to ${pct(last.mlp.per_class['0'].recall)} in round 5, and macro-F1 from ${f3(R[0].mlp.macro_f1)} to ${f3(last.mlp.macro_f1)}, even as ROC-AUC rises from ${f3(R[0].mlp.auc_ovr)} to ${f3(last.mlp.auc_ovr)}. Fixes: class-balanced soft targets, temperature sharpening, or mixing in the local cross-entropy loss during fine-tuning.`],
+  ['fx','The SVM forgets its private data every round',`In round 1, train_local refits the SVC on Hospital 2's data. Then fine_tune replaces self.model with a new GridSearchCV estimator trained only on reference-set pseudo-labels. The model that gets evaluated has never seen Hospital 2's labels directly, and each round starts from scratch. Keeping the local model and blending it with the consensus (or adding the reference rows to the local training set) would let knowledge carry across rounds.`],
   ['md','The shared reference set is a strong assumption',`Both hospitals hold the same ${int(sp.comm)} patient feature vectors. That is realistic only if the set is public, synthetic or consented. Say this up front. It is the price of letting different model families collaborate, since FedAvg cannot average an MLP with an SVM.`],
-  ['md','Normalization uses pooled statistics',`StandardScaler is fit on both hospitals' training rows together, which a real deployment couldn't do. A federated mean and variance (each site sends its count, sum and sum of squares) gives the same scaler without pooling. Test rows are correctly excluded from the fit.`],
-  ['md','The SVM sets probability=True but never uses it',`compute_logits applies softmax to decision_function values, so the internal 5-fold Platt calibration that probability=True triggers is wasted compute. It's the main reason round 1 takes longest. Either drop the flag or use predict_proba for calibrated probabilities.`],
+  ['fx','Normalization uses pooled statistics',`StandardScaler is fit on both hospitals' training rows together, which a real deployment couldn't do. A federated mean and variance (each site sends its count, sum and sum of squares) gives the same scaler without pooling. Test rows are correctly excluded from the fit.`],
+  ['fx','The SVM sets probability=True but never uses it',`compute_logits applies softmax to decision_function values, so the internal 5-fold Platt calibration that probability=True triggers is wasted compute. It's the main reason round 1 takes longest. Either drop the flag or use predict_proba for calibrated probabilities.`],
   ['md','The README describes the loss differently from the code',`The README says KL divergence. The code minimizes soft-label cross-entropy, −Σ p̄ log q. They differ only by the entropy of p̄, which is constant with respect to the model, so the gradients are identical. That's a good detail to explain if asked.`],
   ['ok','Federation measurably helped the SVM',`Trained alone on Hospital 2's data, the SVM predicts class 1 for almost everyone (accuracy ${pct(B.local_svm_h2.acc)}, macro-F1 ${f3(B.local_svm_h2.macro_f1)}). After federation it reaches ${pct(last.acc_svm)} and macro-F1 ${f3(last.svm.macro_f1)}, because the MLP's minority-class signal arrives through the shared probabilities. The MLP ends level with its own local-only baseline (${pct(B.local_mlp_h1.acc)}), so the benefit flowed mainly from the stronger model to the weaker one.`],
   ['ok','What is solid',`Stratified 30/30/20/20 splits with fixed seeds, no test leakage into the scaler, model-agnostic probability exchange (the MLP and SVM really do collaborate), and confidence-weighted pseudo-labels for the SVM. Agreement rose from ${pct(R[0].agreement)} to ${pct(last.agreement)} as the two models converged on the consensus.`],
   ['md','Repository hygiene',`The working code exists only inside final_fl.zip. The repository root also has empty files (==, error, error2…), Colab boilerplate in datahandlingmissingvalues.py, about 75 MB of CSVs and zips in git, hard-coded Windows paths, and no requirements.txt. Unzip into src/, add requirements.txt, and move data to releases or Git LFS.`]
 ];
-el('findings').innerHTML=F.map(([lv,t,p])=>`<div class="fi"><span class="pill ${lv}">${lv==='hi'?'High':lv==='md'?'Medium':'Strength'}</span><div><h3>${esc(t)}</h3><p>${esc(p)}</p></div></div>`).join('');
-const CK=[['y','Stratified partition across hospitals','2 hospitals (brief suggested 3–5)'],['y','Global hold-out test set','20%, never trained on'],['p','Aggregation','Probability averaging instead of FedAvg, deliberate for mixed models'],['n','Flower / gRPC transport','Single-process simulation'],['n','Docker / Kubernetes deployment',''],['n','Differential privacy (DP-SGD, Opacus)','Shown only as noise in the simulator'],['n','Secure aggregation',''],['y','Accuracy, F1, ROC-AUC, confusion matrix','Added in this re-run'],['n','Leave-one-client-out evaluation',''],['y','Dashboard and report','This page']];
+el('findings').innerHTML=F.map(([lv,t,p])=>`<div class="fi"><span class="pill ${lv==='fx'?'ok':lv}">${lv==='hi'?'High':lv==='md'?'Medium':lv==='fx'?'Fixed in v2':'Strength'}</span><div><h3>${esc(t)}</h3><p>${esc(p)}</p></div></div>`).join('');
+const CK=[['y','Stratified partition across hospitals','2 hospitals (brief suggested 3–5)'],['y','Global hold-out test set','20%, never trained on'],['p','Aggregation','Probability averaging instead of FedAvg, deliberate for mixed models'],['n','Flower / gRPC transport','Single-process simulation'],['n','Docker / Kubernetes deployment',''],['n','Differential privacy (DP-SGD, Opacus)','Shown only as noise in the simulator'],['n','Secure aggregation',''],['y','Accuracy, F1, ROC-AUC, confusion matrix','Added in this re-run'],['n','Leave-one-client-out evaluation',''],['y','Dashboard and report','This page'],['y','Bug fixes and class balancing','Version 2, see Fixes']];
 el('checklist').innerHTML=CK.map(([s,t,d])=>`<div><span class="mk ${s}">${s==='y'?'✓':s==='n'?'✕':'~'}</span><span>${esc(t)}${d?`<small>${esc(d)}</small>`:''}</span></div>`).join('');
 
 // ---------- QA ----------
